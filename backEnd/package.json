@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@types/deno": "^2.3.0",
-    "hono": "^4.9.6"
+    "hono": "^4.9.6",
+    "zod": "^4.1.7"
   }
 }
