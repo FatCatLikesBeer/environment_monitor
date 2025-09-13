@@ -30,3 +30,5 @@ app.get("/", (c: Context) => {
 });
 
 Deno.serve(app.fetch);
+
+// TODO: Create tables for database
