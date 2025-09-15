@@ -1,7 +1,11 @@
 import { type Context, Hono } from "hono";
 import { trimTrailingSlash } from "hono/trailing-slash";
+import { dbInit } from "./db";
 
 const app = new Hono();
+
+// Init
+dbInit();
 
 // Middleware
 app.use(trimTrailingSlash());

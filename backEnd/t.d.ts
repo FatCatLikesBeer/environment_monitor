@@ -11,14 +11,15 @@ type MonitorData = {
 }
 
 type MonitorRow = {
-  nowUnix: number;
+  time: number;
 } & MonitorData
 
 type SensorInformation = {
   sensorId: number;
-  building: string;
+  building: number;
   location: string;
-  offSet: string;
+  offsetCoefficent: number;
+  offsetConstant: number;
 }
 
 /**
@@ -43,3 +44,5 @@ export function db_getMonitorData(startRangeUnix: number, endRangeUnix: number):
  * Return retrieval in the form of SensorInformation[].
  */
 export function db_getSensorInformation(): SensorInformation[];
+
+
