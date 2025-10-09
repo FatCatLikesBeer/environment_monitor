@@ -1,4 +1,4 @@
-import { z } from "npm:zod";
+import { z } from "zod";
 
 export const DeviceDataSchema = z.object({
   temperature: z.number(),

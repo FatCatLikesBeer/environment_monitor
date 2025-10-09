@@ -16,6 +16,8 @@
 * API endpoints will always be prefaced with: `/api/v0/`.
 * Resource names will be in plural.
 * Variable names with multiple words will be camelCase.
+* `import` statements in files shall omit `npm:` prefixes. By including "npm:" in the import string, it disrupts my LSP.
+* `temperature` values will be in Celsius. `humidity` values will be in relative humidity.
 
 ## RESTful JSON API Structure
 * GET - `/api/v0/data` - Returns the default 2 week time range of sensor data. Optional parameters: `timeRange`, `building`.

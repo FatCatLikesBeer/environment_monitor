@@ -1,4 +1,4 @@
-import express, { Request, Response } from "npm:express";
+import express, { Request, Response } from "express";
 import { initDb } from "./database.ts";
 import db from "./database.ts";
 import { DeviceDataSchema, BuildingUpdateSchema } from "./schemas.ts";

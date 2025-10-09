@@ -2,6 +2,9 @@
 
 *This is an environment monitoring project. It consists of three project-components: The hardware which will meter environments for temperature and humidity; the back-end which will host and serve the data; the front-end which will display the data for end users.*
 
+## Styling
+* 2 spaces instead of tabs
+
 ## Application structure
 
 `./back-end`: working directory for the back-end

@@ -17,10 +17,10 @@ async function withServer(testFn: (port: number) => Promise<void>) {
 }
 
 function cleanDb() {
-    db.exec("DELETE FROM readings");
-    db.exec("DELETE FROM sensors");
-    db.exec("DELETE FROM devices");
-    db.exec("DELETE FROM buildings");
+  db.exec("DELETE FROM readings");
+  db.exec("DELETE FROM sensors");
+  db.exec("DELETE FROM devices");
+  db.exec("DELETE FROM buildings");
 }
 
 Deno.test("GET /api/v0/data returns empty array when no data", async () => {
@@ -34,53 +34,53 @@ Deno.test("GET /api/v0/data returns empty array when no data", async () => {
 });
 
 Deno.test("POST /api/v0/data with valid data", async () => {
-    cleanDb();
-    db.exec("INSERT OR IGNORE INTO sensors (id) VALUES ('test-sensor')");
+  cleanDb();
+  db.exec("INSERT OR IGNORE INTO sensors (id) VALUES ('test-sensor')");
 
-    await withServer(async (port) => {
-        const data = {
-            temperature: 25.5,
-            humidity: 60.2,
-            device_id: "test-device",
-            sensor_id: "test-sensor",
-        };
+  await withServer(async (port) => {
+    const data = {
+      temperature: 25.5,
+      humidity: 60.2,
+      device_id: "test-device",
+      sensor_id: "test-sensor",
+    };
 
-        const res = await fetch(`http://localhost:${port}/api/v0/data`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        const json = await res.json();
-
-        assertEquals(res.status, 201);
-        assertEquals(json, { message: "Data received" });
-
-        const reading = db.prepare("SELECT * FROM readings WHERE sensor_id = ?").get("test-sensor");
-        assertExists(reading);
-        assertEquals(reading.temperature, 25.5);
-        assertEquals(reading.humidity, 60.2);
+    const res = await fetch(`http://localhost:${port}/api/v0/data`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    const json = await res.json();
+
+    assertEquals(res.status, 201);
+    assertEquals(json, { message: "Data received" });
+
+    const reading = db.prepare("SELECT * FROM readings WHERE sensor_id = ?").get("test-sensor");
+    assertExists(reading);
+    assertEquals(reading.temperature, 25.5);
+    assertEquals(reading.humidity, 60.2);
+  });
 });
 
 Deno.test("POST /api/v0/data with invalid data", async () => {
-    cleanDb();
-    await withServer(async (port) => {
-        const data = {
-            temperature: "hot", // invalid type
-            humidity: 60.2,
-            device_id: "test-device",
-            sensor_id: "test-sensor",
-        };
+  cleanDb();
+  await withServer(async (port) => {
+    const data = {
+      temperature: "hot", // invalid type
+      humidity: 60.2,
+      device_id: "test-device",
+      sensor_id: "test-sensor",
+    };
 
-        const res = await fetch(`http://localhost:${port}/api/v0/data`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        await res.json(); // Consume the response body to prevent leaks
-
-        assertEquals(res.status, 400);
+    const res = await fetch(`http://localhost:${port}/api/v0/data`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    await res.json(); // Consume the response body to prevent leaks
+
+    assertEquals(res.status, 400);
+  });
 });
 
 Deno.test("GET /api/v0/buildings", async () => {
