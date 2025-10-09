@@ -1,9 +1,16 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno run --watch main.ts",
+    "test": "deno test --allow-net --allow-env --allow-read --allow-write"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "@types/deno": "npm:@types/deno@^2.5.0",
+    "@types/express": "npm:@types/express@^5.0.3",
+    "@types/supertest": "npm:@types/supertest@^6.0.3",
+    "express": "npm:express@^5.1.0",
+    "supertest": "npm:supertest@^7.1.4",
+    "zod": "npm:zod@^4.1.12"
   },
   "nodeModulesDir": "auto"
 }

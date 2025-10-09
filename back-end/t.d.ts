@@ -1,11 +1,10 @@
-type SensorData = {
-  temperature: number;
-  humidity: number;
-  device_id: string;
-};
+import { z } from "npm:zod";
 
-type Device = {
-  id: string;
-  name: string;
-  location: string;
-};
+export const DeviceDataSchema = z.object({
+  temperature: z.number(),
+  humidity: z.number(),
+  device_id: z.string(),
+  sensor_id: z.string(),
+});
+
+export type DeviceData = z.infer<typeof DeviceDataSchema>;
