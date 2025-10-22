@@ -14,6 +14,7 @@ app.get("/", (c: Context) => {
 
 app.post("/", async (c: Context) => {
   const content = await c.req.text();
+  console.log(Date());
   console.log(content);
   return c.text("Recieved");
 });
