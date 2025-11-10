@@ -1,9 +1,10 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@std/assert@1": "1.0.15",
+    "jsr:@std/assert@^1.0.15": "1.0.15",
     "jsr:@std/internal@^1.0.12": "1.0.12",
-    "npm:hono@^4.10.1": "4.10.1",
+    "npm:@types/deno@^2.5.0": "2.5.0",
+    "npm:hono@^4.10.4": "4.10.4",
     "npm:zod@^4.1.12": "4.1.12"
   },
   "jsr": {
@@ -18,8 +19,11 @@
     }
   },
   "npm": {
-    "hono@4.10.1": {
-      "integrity": "sha512-rpGNOfacO4WEPClfkEt1yfl8cbu10uB1lNpiI33AKoiAHwOS8lV748JiLx4b5ozO/u4qLjIvfpFsPXdY5Qjkmg=="
+    "@types/deno@2.5.0": {
+      "integrity": "sha512-g8JS38vmc0S87jKsFzre+0ZyMOUDHPVokEJymSCRlL57h6f/FdKPWBXgdFh3Z8Ees9sz11qt9VWELU9Y9ZkiVw=="
+    },
+    "hono@4.10.4": {
+      "integrity": "sha512-YG/fo7zlU3KwrBL5vDpWKisLYiM+nVstBQqfr7gCPbSYURnNEP9BDxEMz8KfsDR9JX0lJWDRNc6nXX31v7ZEyg=="
     },
     "zod@4.1.12": {
       "integrity": "sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ=="
@@ -27,8 +31,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@1",
-      "npm:hono@^4.10.1",
+      "jsr:@std/assert@^1.0.15",
+      "npm:@types/deno@^2.5.0",
+      "npm:hono@^4.10.4",
       "npm:zod@^4.1.12"
     ]
   }
