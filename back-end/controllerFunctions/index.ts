@@ -42,6 +42,8 @@ db.exec(`
   );
 `);
 
+db.exec("CREATE INDEX IF NOT EXISTS idx_readings_time ON readings(time);");
+
 // DB prepared statements
 
 /**
