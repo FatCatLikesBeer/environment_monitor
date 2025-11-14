@@ -7,39 +7,42 @@ const db = new DataBase.DatabaseSync("db.sqlite3");
 db.exec(`
   CREATE TABLE IF NOT EXISTS buildings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    building_name TEXT NOT NULL
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    device_id TEXT NOT NULL
+    device_name TEXT NOT NULL UNIQUE
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS sensors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    building INTEGER,
-    device TEXT NOT NULL,
-    sensor_id INTEGER,
-    FOREIGN KEY (building) REFERENCES buildings(id),
-    FOREIGN KEY (device) REFERENCES devices(id)
+    building_id INTEGER,
+    device_id TEXT NOT NULL,
+    sensor_name TEXT NOT NULL,
+    FOREIGN KEY (building_id) REFERENCES buildings(id),
+    FOREIGN KEY (device_id) REFERENCES devices(id),
+    UNIQUE (device_id, sensor_name)
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sensor TEXT NOT NULL,
+    sensor_id INTEGER NOT NULL,
     time INTEGER,
     temperature REAL,
-    hunidity REAL,
+    humidity REAL,
     vpd REAL,
-    FOREIGN KEY (sensor) REFERENCES sensors(id)
+    FOREIGN KEY (sensor_id) REFERENCES sensors(id)
   );
 `);
+
+// DB prepared statements
 
 /**
  * Front end goes here
@@ -53,38 +56,51 @@ export const get_controllerIndex = (c: Context): Response => {
  */
 export const post_insertReadings = async (c: Context): Promise<Response> => {
   let errorFlag = true;
-  // TODO: SQL syntax: device should select `devices` member based on device_id
-  // TODO: Ignore if exists, insert device_id
-  const db_insertPrepare = db.prepare(`
-    INSERT INTO readings (device, sensor, temperature, humidity, time, vpd) VALUES (?, ?, ?, ?, ?);
-  `);
 
   try {
     const request: DeviceRequestBody = await c.req.json();
     const formatted = { ...request, date: Date.now() };
 
-    // Insert into DB
+    // Insert device
+    db.prepare(`INSERT OR IGNORE INTO devices(device_name) VALUES(?);`)
+      .run(formatted.device_id);
+
+    // Insert Sensors
+    for (const i in formatted.data) {
+      db.prepare(`
+        INSERT OR IGNORE INTO sensors(device_id, sensor_name)
+        VALUES((SELECT id FROM devices WHERE device_name = ?), ?);`)
+        .run(formatted.device_id, formatted.data[i].name);
+    }
+
+    // Insert readings into DB
     for (const i in formatted.data) {
       const vpd = getVPD(
         formatted.data[i].temperature,
         formatted.data[i].humidity,
       );
 
-      db_insertPrepare.run(
-        formatted.device_id,
-        formatted.data[i].name,
-        formatted.data[i].temperature,
-        formatted.data[i].humidity,
-        formatted.date,
-        vpd,
-      );
+      db.prepare(`
+        INSERT INTO readings (sensor_id, temperature, humidity, time, vpd)
+        VALUES(
+          (SELECT id FROM sensors WHERE device_id =
+            (SELECT id FROM devices WHERE device_name = ?)
+          AND sensor_name = ?),
+          ?, ?, ?, ?);
+      `)
+        .run(
+          formatted.device_id,
+          formatted.data[i].name,
+          formatted.data[i].temperature,
+          formatted.data[i].humidity,
+          formatted.date,
+          vpd,
+        );
     }
 
     errorFlag = false;
   } catch (err: unknown) {
     console.error("err", err);
-  } finally {
-    db.close();
   }
 
   return errorFlag ? c.text("Unknown Error", 500) : c.text("Recieved!", 200);
@@ -94,6 +110,10 @@ export default {
   get_controllerIndex,
   post_insertReadings,
 };
+
+////////////////////////
+// HELPER FUNCTIONS
+////////////////////////
 
 /**
  * Calculates VPD
@@ -106,3 +126,5 @@ function getVPD(temperature: number, humidity: number): number {
   const vpd = svp * (1 - humidity / 100);
   return vpd;
 }
+
+// TODO: BUILDINGS: POST API
