@@ -149,7 +149,7 @@ const get_returnReadings = (c: Context) => {
 
     const rows = db.prepare(`
       SELECT b.building_name as building, d.device_name as device, s.sensor_name as sensor,
-        r.time, r.temperature, r.humidity, r.vpd, r.id
+        r.time, r.temperature, r.humidity, r.vpd
         FROM readings r
         JOIN sensors s ON r.sensor_id = s.id
         JOIN devices d ON s.device_id = d.id
@@ -162,6 +162,134 @@ const get_returnReadings = (c: Context) => {
   } catch (err: unknown) {
     result = `${err}`;
     console.error("Error", err);
+  }
+
+  return c.json(result, status);
+};
+
+const get_return24HourRange = (c: Context) => {
+  const oneDayAgo = Date.now() - TIME.DAY;
+  let status: ContentfulStatusCode = 500;
+  let result: string | string[] = "Unknown Server Error";
+
+  try {
+    const rows = db.prepare(`
+      SELECT r.id, r.temperature, r.humidity, r.vpd, r.time, b.building_name as building,
+        s.sensor_name as sensor
+      FROM readings r
+      JOIN sensors s ON r.sensor_id = s.id
+      LEFT JOIN buildings b ON s.building_id = b.id
+      WHERE time > ?
+      AND r.temperature > 10;
+    `).all(oneDayAgo) as unknown as {
+      id: number;
+      temperature: number;
+      humidity: number;
+      building: string | null;
+      sensor: string;
+      vpd: number;
+    }[];
+
+    const highLows: {
+      [name: string]: {
+        temperature: {
+          high: number;
+          average: number;
+          low: number;
+        };
+        humidity: {
+          high: number;
+          average: number;
+          low: number;
+        };
+        vpd: {
+          high: number;
+          average: number;
+          low: number;
+        };
+      };
+    } = {};
+
+    const accumliator: {
+      [name: string]: {
+        temperature: number[];
+        humidity: number[];
+        vpd: number[];
+      };
+    } = {};
+
+    rows.forEach((elem) => {
+      const sensorName = elem.sensor;
+      // Init properties
+      if (!highLows[sensorName]) {
+        highLows[sensorName] = {
+          temperature: {
+            high: -1000000,
+            low: 1000000,
+            average: 0,
+          },
+          humidity: {
+            high: -1000000,
+            low: 1000000,
+            average: 0,
+          },
+          vpd: {
+            high: -1000000,
+            low: 1000000,
+            average: 0,
+          },
+        };
+        accumliator[sensorName] = {
+          temperature: [],
+          humidity: [],
+          vpd: [],
+        };
+      }
+
+      // Adjust Values
+      if (highLows[sensorName].temperature.high < elem.temperature) {
+        highLows[sensorName].temperature.high = elem.temperature;
+      }
+      if (highLows[sensorName].temperature.low > elem.temperature) {
+        highLows[sensorName].temperature.low = elem.temperature;
+      }
+      if (highLows[sensorName].humidity.high < elem.humidity) {
+        highLows[sensorName].humidity.high = elem.humidity;
+      }
+      if (highLows[sensorName].humidity.low > elem.humidity) {
+        highLows[sensorName].humidity.low = elem.humidity;
+      }
+      if (highLows[sensorName].vpd.high < elem.vpd) {
+        highLows[sensorName].vpd.high = elem.vpd;
+      }
+      if (highLows[sensorName].vpd.low > elem.vpd) {
+        highLows[sensorName].vpd.low = elem.vpd;
+      }
+
+      // Push values in accumliator
+      accumliator[sensorName].temperature.push(elem.temperature);
+      accumliator[sensorName].humidity.push(elem.humidity);
+      accumliator[sensorName].vpd.push(elem.vpd);
+    });
+
+    // Average out accumliator values
+    Object.keys(accumliator).forEach((elem) => {
+      const temps = (accumliator[elem].temperature.reduce((acc, curr) =>
+        acc + curr, 0)) / accumliator[elem].temperature.length;
+      const humes = (accumliator[elem].humidity.reduce((acc, curr) =>
+        acc + curr, 0)) / accumliator[elem].humidity.length;
+      const vpds = (accumliator[elem].vpd.reduce((acc, curr) =>
+        acc + curr, 0)) / accumliator[elem].vpd.length;
+      highLows[elem].temperature.average = temps;
+      highLows[elem].humidity.average = humes;
+      highLows[elem].vpd.average = vpds;
+    });
+
+    result = JSON.parse(JSON.stringify(highLows));
+  } catch (error: unknown) {
+    status = 400;
+    result = `${error}`;
+    console.error(error);
   }
 
   return c.json(result, status);
@@ -191,4 +319,5 @@ export default {
   get_controllerIndex,
   post_insertReadings,
   get_returnReadings,
+  get_return24HourRange,
 };

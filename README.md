@@ -10,3 +10,4 @@ In 2023 I created a primitive environment monitoring system using esp2388 micro-
 * API: GET date ranges
 * API: GET 24 hour highs and lows
 * Integrate an alert system using Pushover, Telegram, or WhatsApp
+* ~~API: GET 5 most recent values & get 24-hr Highs & lows~~
